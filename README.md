@@ -1,41 +1,62 @@
-# DIO-LiveCoding-AWS-BigData
-Repositório de cógido do Dio Live Coding com AWS EMR e Python
-Neste repositório há os arquivos de configuração e execução de análise de dados.
+# ☁️ AWS Data Lake & EMR Processing Pipeline
 
-## Instruções
+![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white) ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![Hadoop](https://img.shields.io/badge/Apache%20Hadoop-66CC00?style=for-the-badge&logo=apachehadoop&logoColor=white)
 
-* Acessar S3: https://s3.console.aws.amazon.com/s3/ 
-  * Criar estrutura de data lake : _dio-live-datalake_
-  * Criar estrutura de pastas:
-    * _data_
-    * _output_
-    * _temp_
-* Acessar EMR: https://console.aws.amazon.com/elasticmapreduce/
-    * O cluster será criado pelo MrJob e não pelo console
-    * Infraestrutura como código 
-* Criar chave SSH
-    * Acessar  Console do EC2: https://console.aws.amazon.com/ec2/ -> Key Pairs -> Create Key Pair	
-    * Download .pem file
-* Obter Id e chave secreta AWS para configurar MrJob
-   * Profile
-   * My Security Credentials: https://console.aws.amazon.com/iam/home?region={region}#/security_credentials
-   * Access Keys - Create new access key
-   * Fazer download - única chance de visualizar
-* Ambiente linux
-   * Criar ambiente virtual python: _virtualenv --python=python3.6 venv_diolive_
-   * Acessar com o vs code
-* Instalar vscode no Ubuntu
-   *  code .
-* Criar algoritmo de análise de palavras
-   * dio-live-wordcount-test.py
-   * map-reduce-count : contar
-   * Instalar boto3: _pip install boto3_
-   * Instalar mrjob: _pip install mrjob_
-* Acessar S3
-   * Upload de arquivo para o bucket
-* Ambiente virtual python: source venv_teste/bin/activate
-  * _nano ~/.mrjob.conf_
-  * _python3 dio-live-wordcount-test.py -r emr s3://{your_s3_bucket_name}/data/SherlockHolmes.txt --output-dir=s3://{your_s3_bucket_name}/output/logs1 --cloud-tmp-dir=s3://{your_s3_bucket_name}/temp/_
+Este repositório contém a infraestrutura e o código para um pipeline de processamento distribuído de Big Data (MapReduce) utilizando **Amazon Elastic MapReduce (EMR)**, integrando armazenamento escalável via **Amazon S3** e scripts em **Python (MrJob)**.
 
-O resultado do wordcount-test.py está no resultado.txt
+Este projeto demonstra a capacidade de arquitetar soluções de dados em nuvem, desde a ingestão (S3) até o processamento massivo (Hadoop/EMR) gerenciado via Infraestrutura como Código (IaC dinâmico pela lib `mrjob`).
 
+---
+
+## 🏗️ Arquitetura do Projeto
+
+1. **Storage Layer (S3):** Um Data Lake foi construído no Amazon S3, estruturado nas camadas padrão:
+   - `/data`: Arquivos raw de input (Ex: datasets massivos de texto).
+   - `/temp`: Área de staging temporário para o EMR.
+   - `/output`: Resultados agregados finais gerados pelos clusters.
+2. **Compute Layer (AWS EMR):** Clusters efêmeros gerenciados sob demanda para otimização de custos, executando o framework Hadoop MapReduce.
+3. **Application Layer (Python/MrJob):** Script Map-Reduce para analisar as frequências léxicas de documentos massivos. O `mrjob` abstrai a criação e o encerramento do cluster EMR diretamente pelo terminal.
+
+## 🛠️ Tecnologias Utilizadas
+
+- **Cloud Provider:** Amazon Web Services (AWS)
+- **Data Lake:** Amazon S3
+- **Big Data Compute:** Amazon EMR (Elastic MapReduce), Apache Hadoop
+- **Linguagem:** Python (Boto3, mrjob)
+
+---
+
+## ⚙️ Como Executar
+
+### Pré-requisitos
+1. Uma conta ativa na AWS com permissões para `S3`, `EMR` e `EC2`.
+2. Credenciais de acesso configuradas (`aws configure`).
+3. Uma Key Pair(`.pem`) do EC2 criada.
+
+### Passo-a-Passo
+
+1. **Clone o repositório e crie o ambiente virtual:**
+   ```bash
+   git clone https://github.com/michael-eng-ai/AWS-BigData.git
+   cd AWS-BigData
+   python -m venv venv
+   source venv/bin/activate
+   pip install boto3 mrjob
+   ```
+
+2. **Configure o seu Datalake no S3:**
+   Crie um bucket (Ex: `s3://meu-datalake-senior`) e as pastas `/data`, `/temp` e `/output`. Faça o upload do seu dataset raw para a pasta `data/`.
+
+3. **Inicie o Processamento (Cluster será provisionado e destruído automaticamente):**
+   ```bash
+   python dio-live-wordcount-test.py -r emr s3://meu-datalake-senior/data/SherlockHolmes.txt \
+   --output-dir=s3://meu-datalake-senior/output/job1 \
+   --cloud-tmp-dir=s3://meu-datalake-senior/temp/
+   ```
+
+4. **Análise de Resultados:**
+   Os arquivos de contagem estarão particionados diremente na subpasta `output/job1` do S3.
+
+---
+
+> *Este projeto foi desenvolvido como demonstração de provisionamento elástico e gerenciamento analítico na plataforma AWS.*
